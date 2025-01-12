@@ -3,9 +3,9 @@ name: CI - Build and Publish Worker Docker Image
 on:
   push:
     branches:
-      - main  # Execute a pipeline quando houver push na branch principal
+      - master  # Execute a pipeline quando houver push na branch principal
 
-variables:
+env:
   csproj: MyWorker.csproj
   IMAGE_NAME: myworker
   IMAGE_TAG: latest
