@@ -3,7 +3,7 @@ name: CI - Build and Publish Worker Docker Image
 on:
   push:
     branches:
-      - main  # Execute a pipeline quando houver push na branch principal
+      - master  # Execute a pipeline quando houver push na branch principal
 
 env:
   csproj: MyWorker.csproj
