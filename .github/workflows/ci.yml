@@ -44,7 +44,21 @@ jobs:
         sudo dpkg -i trivy.deb
         sudo apt-get update
 
-    # Etapa 6: Run Trivy to scan Docker image
+    # Etapa 6: Run Trivy to scan Docker image for vulnerabilities
     - name: Run Trivy to scan Docker image for vulnerabilities
       run: |
-        trivy image ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
+        trivy image --format json --output trivy-report.json ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
+
+    # Etapa 7: Criar um Issue no GitHub com o Relatório
+    - name: Create GitHub Issue with Trivy report
+      uses: peter-evans/create-issue@v2
+      with:
+        title: "Trivy Security Scan Report for ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG"
+        body: |
+          **Relatório de Vulnerabilidades do Trivy:**
+
+          ```json
+          $(cat trivy-report.json)
+          ```
+
+        labels: security, bug
