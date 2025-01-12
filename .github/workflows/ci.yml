@@ -36,3 +36,15 @@ jobs:
       run: |
         docker tag $IMAGE_NAME:$IMAGE_TAG ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
         docker push ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
+
+    # Etapa 5: Install Trivy
+    - name: Install Trivy
+      run: |
+        curl -sSfL https://github.com/aquasecurity/trivy/releases/download/v0.38.3/trivy_0.38.3_Linux-64bit.deb -o trivy.deb
+        sudo dpkg -i trivy.deb
+        sudo apt-get update
+
+    # Etapa 6: Run Trivy to scan Docker image
+    - name: Run Trivy to scan Docker image for vulnerabilities
+      run: |
+        trivy image ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
