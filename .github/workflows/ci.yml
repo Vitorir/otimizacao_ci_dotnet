@@ -9,6 +9,7 @@ env:
   csproj: MyWorker.csproj
   IMAGE_NAME: myworker
   IMAGE_TAG: latest
+  DEVSECOPS_REPOSITORY: devsecops-relatorios  # Nome do repositório centralizado
 
 jobs:
   build:
@@ -50,18 +51,26 @@ jobs:
       run: |
         trivy image --format json --output trivy-report.json ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
 
-    # Etapa 7: Create GitHub Issue with Trivy report
-    - name: Create GitHub Issue with Trivy report
-      uses: peter-evans/create-issue@v3
-      with:
-        title: "Trivy Security Scan Report for ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG"
-        body: |
-          **Relatório de Vulnerabilidades do Trivy para a imagem ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG:**
+    # Etapa 7: Commit and push the Trivy report to the devsecops-relatorios repository
+    - name: Push Trivy Report to devsecops-relatorios repository
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token to authenticate
+      run: |
+        # Adiciona o repositório devsecops-relatorios como remoto
+        git clone https://github.com/${{ github.repository_owner }}/$DEVSECOPS_REPOSITORY.git
+        cd $DEVSECOPS_REPOSITORY
 
-          **Relatório JSON:**
-          
-          ```json
-          $(cat trivy-report.json)
-          ```
+        # Cria um novo diretório com o nome da imagem e tag
+        mkdir -p trivy-reports/$IMAGE_NAME/$IMAGE_TAG
+        
+        # Copia o relatório Trivy para o diretório criado
+        cp ../trivy-report.json trivy-reports/$IMAGE_NAME/$IMAGE_TAG/
 
-        labels: security, bug  # Tags para categorizar a issue como um problema de segurança
+        # Configura o usuário de commit para o GitHub Actions
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "github-actions@github.com"
+        
+        # Faz commit e push
+        git add .
+        git commit -m "Adicionar relatório Trivy para $IMAGE_NAME:$IMAGE_TAG"
+        git push origin main
