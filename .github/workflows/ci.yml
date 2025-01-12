@@ -3,9 +3,9 @@ name: CI - Build and Publish Worker Docker Image
 on:
   push:
     branches:
-      - master  # Execute a pipeline quando houver push na branch principal
+      - main  # Execute a pipeline quando houver push na branch principal
 
-env:
+variables:
   csproj: MyWorker.csproj
   IMAGE_NAME: myworker
   IMAGE_TAG: latest
@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest  # Executa em uma máquina virtual com Ubuntu
     
     steps:
+    
     # Etapa 1: Checkout do código
     - name: Checkout code
       uses: actions/checkout@v3
@@ -28,8 +29,8 @@ jobs:
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}  # Usando o secret de username
-        password: ${{ secrets.DOCKER_PASSWORD }}  # Usando o secret de password
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
     # Etapa 4: Push da imagem Docker
     - name: Push Docker image
@@ -49,16 +50,18 @@ jobs:
       run: |
         trivy image --format json --output trivy-report.json ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
 
-    # Etapa 7: Criar um Issue no GitHub com o Relatório
+    # Etapa 7: Create GitHub Issue with Trivy report
     - name: Create GitHub Issue with Trivy report
-      uses: peter-evans/create-issue@v2
+      uses: peter-evans/create-issue@v3
       with:
         title: "Trivy Security Scan Report for ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG"
         body: |
-          **Relatório de Vulnerabilidades do Trivy:**
+          **Relatório de Vulnerabilidades do Trivy para a imagem ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG:**
 
+          **Relatório JSON:**
+          
           ```json
           $(cat trivy-report.json)
           ```
 
-        labels: security, bug
+        labels: security, bug  # Tags para categorizar a issue como um problema de segurança
