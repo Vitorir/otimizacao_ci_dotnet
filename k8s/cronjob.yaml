@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: myworker-cronjob
+spec:
+  schedule: "45 15 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: myworker
+        spec:
+          containers:
+          - name: myworker
+            image: myworker:latest
+            env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+          restartPolicy: OnFailure

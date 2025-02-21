@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myworker-deployment
+  labels:
+    app: myworker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myworker
+  template:
+    metadata:
+      labels:
+        app: myworker
+    spec:
+      containers:
+      - name: myworker
+        image: myworker:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
